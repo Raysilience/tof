@@ -1,0 +1,3 @@
+rootProject.name = "ToF"
+include ':app'
+include ':opencv'
