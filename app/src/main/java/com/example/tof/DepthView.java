@@ -5,46 +5,46 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+
+import java.nio.ByteBuffer;
 
 /**
  * @Author RUI
  * @Date 2021/4/23
  */
-public class MyView extends View {
-    private static final String TAG = MyView.class.getName();
+public class DepthView extends View {
+    private static final String TAG = DepthView.class.getName();
     private final String mColor = "#42ed45";
     private Paint mBitPaint;
     private Paint mCrossPaint;
     private Paint mTextPaint;
+
     public Bitmap mBitmap;
     private int mWidth;
     private int mHeight;
-    private int mDistance;
-
-    private ImageProcessor mImageProc;
-
     private Rect mSrc;
     private Rect mDst;
 
-    private int[] mPixel;
+    private int mDistance;
+    private Point mPoint;
 
-    public MyView(Context context) {
+    public DepthView(Context context) {
         super(context);
         init(context);
     }
 
-    public MyView(Context context, @Nullable AttributeSet attrs) {
+    public DepthView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
-    public MyView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public DepthView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
@@ -65,21 +65,16 @@ public class MyView extends View {
         mBitPaint.setFilterBitmap(true);
         mBitPaint.setDither(true);
 
-        mPixel = new int[1];
-        mDst = new Rect(0, 50, 960, 770);
-
+        mPoint = new Point(320, 240);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Log.d("RUi", "onDraw");
         if (mBitmap != null){
-
-
             canvas.drawBitmap(mBitmap, mSrc, mDst, mBitPaint);
 
-            drawCross(canvas, (mDst.right - mDst.left)/2, (mDst.bottom - mDst.top)/2, mCrossPaint);
+            drawCross(canvas, mPoint.x*(mDst.right - mDst.left)/mWidth + mDst.left, mPoint.y*(mDst.bottom - mDst.top)/mHeight + mDst.top, mCrossPaint);
 
             canvas.drawText("z: " + (this.mDistance/1000.0f) + "m", mDst.right - 150, mDst.bottom-80, mTextPaint);
         }
@@ -93,14 +88,23 @@ public class MyView extends View {
     public void setDepthSize(int width, int height){
         mWidth = width;
         mHeight = height;
-
         mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
-//        Log.e("+++++++Rui++++++", mBitmap.getByteCount() + "");
+
         mSrc = new Rect(0, 0, mWidth, mHeight);
+        mDst = new Rect(0, 50, 960, 770);
     }
 
-    public void setDistance(int val){
-        this.mDistance = val;
+    public void setDistance(ByteBuffer src16){
+        int distance = src16.get(2*mWidth*mPoint.y + 2*mPoint.x) & 0xFF;
+        distance += (src16.get(2*mWidth*mPoint.y + 2*mPoint.x +1) & 0xFF) << 8;
+        this.mDistance = distance & 0xFFFF;
     }
 
+    public Point getmPoint() {
+        return mPoint;
+    }
+
+    public void setmPoint(Point mPoint) {
+        this.mPoint = mPoint;
+    }
 }

@@ -11,7 +11,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.AdapterView;
+import android.widget.Spinner;
 
 import com.tcl.camera.TCameraManager;
 import com.tcl.tosapi.camera.TvCameraApi;
@@ -31,8 +32,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final String TAG = "MainActivity";
-    private static final int REQUEST_CAMERA_PERMISSION = 0x8000;
-    private MyView myDepthView;
+    private DepthView myDepthView;
     private Camera2Preview mCamera2;
 
     private final int PERMISSION_REQUEST_CODE = 1;
@@ -40,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private final String[] mPermissions = new String[]{
             Manifest.permission.CAMERA,
     };
+
+    private Spinner mSpinner;
+    private ImageProcessor mImageProcessor;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -57,8 +60,26 @@ public class MainActivity extends AppCompatActivity {
         myDepthView = findViewById(R.id.Depth);
         myDepthView.setDepthSize(640, 480);
         mCamera2.setDepthView(myDepthView);
-    }
 
+        mImageProcessor = ImageProcessor.getInstance(this);
+
+        mSpinner = findViewById(R.id.Spinner);
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String item = (String)parent.getItemAtPosition(position);
+                ImageProcessor.COLORMAP type = ImageProcessor.COLORMAP.valueOf(item);
+                mImageProcessor.setLUT(type);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.e("RUi", "onNothingSelected");
+
+            }
+        });
+
+    }
 
     @Override
     protected void onResume() {
@@ -73,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
     @Override
     protected void onPause() {
@@ -144,13 +164,14 @@ public class MainActivity extends AppCompatActivity {
                 }
         }
     }
+
+    public void onCapture(View view) {
+        mCamera2.setCaptureOneFrame(true);
+    }
+
     /**
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
     public native String stringFromJNI();
-
-    public void onCapture(View view) {
-        mCamera2.setCaptureOneFrame(true);
-    }
 }

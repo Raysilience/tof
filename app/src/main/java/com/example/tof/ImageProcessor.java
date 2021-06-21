@@ -1,5 +1,9 @@
 package com.example.tof;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.strictmode.SqliteObjectLeakedViolation;
 import android.util.Log;
 
 import java.nio.BufferUnderflowException;
@@ -7,26 +11,42 @@ import java.nio.ByteBuffer;
 
 public class ImageProcessor {
     enum COLORMAP{
-        JET, RAINBOW
+        JET, RAINBOW, SMOOTH_COOL_WARM, VIRIDIS, PLASMA
     }
     private static final String TAG = ImageProcessor.class.getName();
     private int[] LUT = new int[256];
     private float[] histogram = new float[65536];
     private boolean isLUTSet = false;
+    private DatabaseHelper dbHelper;
+    private static ImageProcessor instance;
+    private int range_min = 100;
+    private int range_max = 4096;
+
+    public static synchronized ImageProcessor getInstance(Context context){
+        if (instance == null){
+            instance = new ImageProcessor(context);
+        }
+        return instance;
+    }
+
+    private ImageProcessor(Context context){
+        dbHelper = DatabaseHelper.getInstance(context);
+    }
 
     public void setLUT(COLORMAP type) {
-        switch (type){
-            case JET:
-                for (int i = 0; i < 256; i++){
-                    int r = (i > 128) ? (i < 192) ? (i - 128) * 4 : 255 : 0;
-                    int g = (i < 64) ? i * 4 : (i > 192) ? (256 - (4 * (i - 192))) : 255;
-                    int b = (i > 64) ? (i > 128) ? 0 : (256 - 4 * (i - 128)) : 255;
-                    this.LUT[i] = getRGB565(r, g, b);
-                }
-                break;
-            case RAINBOW:
-                break;
+        dbHelper.update(type);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + type.toString(), null);
+        int r, g, b, i = 0;
+        while (cursor.moveToNext() && i < 256){
+            r = cursor.getInt(1);
+            g = cursor.getInt(2);
+            b = cursor.getInt(3);
+            this.LUT[i++] = getRGB565(r, g, b);
         }
+        cursor.close();
+        db.close();
+
         this.LUT[0] = 0;
         this.isLUTSet = true;
     }
@@ -43,14 +63,12 @@ public class ImageProcessor {
      * @param val: 16bit
      * @param range_max: maximum depth value
      * @param range_min: minimum depth value
-     * @param LUT: lookup table
      * @return color in the form of RGB565
      */
-    private int scaleNApplyLUT(int val, int range_max, int range_min, int[] LUT){
-        // map 65536 to 256 then
+    private int scaleNApplyLUT(int val, int range_max, int range_min){
         if (!isLUTSet) return 0;
         if (val >= range_min && val <= range_max){
-            val = 255 - (int)((float)(val - range_min)*255/(range_max - range_min));
+            val = (int)((float)(val - range_min)*255/(range_max - range_min));
         } else {
             val = 0;
         }
@@ -110,8 +128,7 @@ public class ImageProcessor {
                 val += (src16.get() & 0xFF) << 8;
 
 //                int rgb = histNApplyLUT(val, this.LUT);
-                int rgb = scaleNApplyLUT(val, 8191, 128, this.LUT);
-
+                int rgb = scaleNApplyLUT(val, range_max, range_min);
                 dst16.put((byte) (rgb & 0xFF));
                 dst16.put((byte) ((rgb & 0xFFFF) >> 8));
 
@@ -121,5 +138,21 @@ public class ImageProcessor {
         }
         src16.rewind();
         dst16.rewind();
+    }
+
+    public int getRange_min() {
+        return range_min;
+    }
+
+    public void setRange_min(int range_min) {
+        this.range_min = range_min;
+    }
+
+    public int getRange_max() {
+        return range_max;
+    }
+
+    public void setRange_max(int range_max) {
+        this.range_max = range_max;
     }
 }

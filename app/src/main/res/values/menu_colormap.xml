@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="menu_type">
+        <item>JET</item>
+        <item>VIRIDIS</item>
+        <item>PLASMA</item>
+        <item>SMOOTH_COOL_WARM</item>
+        <item>RAINBOW</item>
+    </string-array>
+
+</resources>

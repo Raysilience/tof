@@ -3,8 +3,6 @@ package com.example.tof;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -18,40 +16,23 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.Size;
-import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import org.opencv.android.Utils;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
+import org.opencv.core.Point;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
-
-import static org.opencv.core.CvType.CV_8UC1;
-import static org.opencv.core.CvType.CV_8UC3;
-import static org.opencv.imgcodecs.Imgcodecs.IMREAD_ANYDEPTH;
-import static org.opencv.imgcodecs.Imgcodecs.IMREAD_COLOR;
-import static org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE;
-import static org.opencv.imgcodecs.Imgcodecs.IMREAD_UNCHANGED;
 
 public class Camera2Preview extends TextureView {
     private static final String TAG = "Camera2Preview";
-    private static final String PATH = "/sdcard/tmp.png";
+    private static final String PATH = "/sdcard/";
     private Context mContext;
     private String mCameraId;
     private CameraCaptureSession mCaptureSession;
@@ -62,11 +43,13 @@ public class Camera2Preview extends TextureView {
     private Handler mBackgroundHandler;
     private ImageReader mImageReader;
 
-    private MyView myDepthView;
+    private DepthView myDepthView;
     private ImageProcessor mImageProc;
     private boolean isCaptureOneFrame = false;
-    ByteBuffer dst16 = ByteBuffer.allocate(614400);
+    private ByteBuffer dst16 = ByteBuffer.allocate(614400);
+    private Point mPoint;
 
+    private int photoIdx = 0;
 
     public Camera2Preview(Context context) {
         this(context, null);
@@ -79,8 +62,9 @@ public class Camera2Preview extends TextureView {
     public Camera2Preview(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mContext = context;
-        mImageProc = new ImageProcessor();
-        mImageProc.setLUT(ImageProcessor.COLORMAP.JET);
+        Log.e(TAG, String.valueOf(context != null));
+        mImageProc = ImageProcessor.getInstance(context);
+        mImageProc.setLUT(ImageProcessor.COLORMAP.PLASMA);
     }
 
     private final SurfaceTextureListener mSurfaceTextureListener = new SurfaceTextureListener() {
@@ -244,28 +228,22 @@ public class Camera2Preview extends TextureView {
             Log.d(TAG, "onImageAvailable SIZE = " + src16.remaining());
 
             if (isCaptureOneFrame){
-                saveOneFrame(PATH, src16);
+                saveOneFrame(PATH + "depth_" +  photoIdx++ + ".png", src16);
                 isCaptureOneFrame = false;
             }
 
-            int distance = src16.get(640*480 + 640) & 0xFF;
-            distance += (src16.get(640*480 + 640 +1) & 0xFF) << 8;
-            myDepthView.setDistance(distance & 0xFFFF);
-            Log.d(TAG, "distance: " + distance);
-
+            myDepthView.setDistance(src16);
 
             mImageProc.applyColorMap(src16, dst16);
             myDepthView.mBitmap.copyPixelsFromBuffer(dst16);
-
-            Log.d(TAG, "refresh");
-            myDepthView.invalidate();
+            myDepthView.postInvalidate();
 
             img.close();
 
         }
     };
 
-    public void setDepthView(MyView view){
+    public void setDepthView(DepthView view){
         myDepthView = view;
     }
 

@@ -2,47 +2,129 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:orientation="vertical">
 
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/black"
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/captureDepth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20sp"
+            android:text="capture depth"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:onClick="onCapture"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/captureDepth"
+            android:layout_marginStart="80sp"
+            android:textSize="20sp"
+            android:id="@+id/MinText"
+            android:text="MIN:"
+            android:textColor="@color/gray"
+            />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/MinText"
+            android:layout_centerVertical="true"
+            android:id="@+id/range_min"
+            android:hint="100"
+            android:textColorHint="@color/gray"
+            android:textColor="@color/white"
+            android:elegantTextHeight="true"
+            android:inputType="number"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textSize="20sp"
+            android:layout_toRightOf="@+id/range_min"
+            android:id="@+id/MaxText"
+            android:text="MAX: "
+            android:textColor="@color/gray"
+            />
+        <EditText
+            android:id="@+id/range_max"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/MaxText"
+            android:hint="4096"
+            android:textColorHint="@color/gray"
+            android:textColor="@color/white"
+            android:elegantTextHeight="true"
+            android:inputType="number"
+
+            />
+
+        <Spinner
+            android:id="@+id/Spinner"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/range_max"
+            android:layout_marginLeft="40dp"
+            android:background="@color/gray"
+            android:dropDownWidth="150dp"
+            android:entries="@array/menu_type"
+            android:spinnerMode="dropdown" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="@color/black">
-        <com.example.tof.Camera2Preview
-            android:id="@+id/Camera2Preview"
-            android:layout_width="640sp"
-            android:layout_height="360sp"
-            android:layout_gravity="center_vertical"/>
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/black">
+
+            <com.example.tof.Camera2Preview
+                android:id="@+id/Camera2Preview"
+                android:layout_width="640sp"
+                android:layout_height="360sp"
+                android:layout_centerVertical="true" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/black"
+            android:orientation="vertical">
+            <com.example.tof.DepthView
+                android:background="@color/black"
+                android:id="@+id/Depth"
+                android:layout_width="640sp"
+                android:layout_height="480sp"
+                android:layout_centerVertical="true"
+                />
+
+
+
+        </RelativeLayout>
 
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="@color/black"
-        android:orientation="vertical">
-        <com.example.tof.MyView
-            android:background="@color/black"
-            android:id="@+id/Depth"
-            android:layout_width="640sp"
-            android:layout_height="480sp"
-            android:layout_centerVertical="true"
-            />
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="capture one frame"
-            android:textSize="20sp"
-            android:textAllCaps="false"
-            android:layout_below="@id/Depth"
-            android:layout_centerHorizontal="true"
-            android:backgroundTint="@color/cardview_dark_background"
-            android:onClick="onCapture"/>
-
-    </RelativeLayout>
 
 
 </LinearLayout>
