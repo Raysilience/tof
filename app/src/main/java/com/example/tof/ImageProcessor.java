@@ -132,7 +132,7 @@ public class ImageProcessor {
                 dst16.put((byte) (rgb & 0xFF));
                 dst16.put((byte) ((rgb & 0xFFFF) >> 8));
 
-            } catch (BufferUnderflowException ignored){
+            } catch (BufferUnderflowException | IllegalStateException ignored){
                 break;
             }
         }

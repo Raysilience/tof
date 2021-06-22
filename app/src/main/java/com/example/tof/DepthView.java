@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -32,7 +33,16 @@ public class DepthView extends View {
     private Rect mDst;
 
     private int mDistance;
+    private int[] mDistArray = new int[9];
     private Point mPoint;
+    private Point[] mPointArray;
+    private int x = 320;
+    private int y = 200;
+    private int offset = 120;
+
+
+    private int fpsCount;
+    private long oldTime;
 
     public DepthView(Context context) {
         super(context);
@@ -65,18 +75,36 @@ public class DepthView extends View {
         mBitPaint.setFilterBitmap(true);
         mBitPaint.setDither(true);
 
-        mPoint = new Point(320, 240);
+
+        mPoint = new Point(x, y);
+        mPointArray = new Point[]{new Point(x, y),
+                new Point(x - offset, y),
+                new Point(x + offset, y),
+                new Point(x, y - offset),
+                new Point(x, y + offset),
+                new Point(x - offset, y - offset),
+                new Point(x + offset, y + offset),
+                new Point(x + offset, y - offset),
+                new Point(x - offset, y + offset)};
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (mBitmap != null){
+            statisticsFPS(System.currentTimeMillis());
+
             canvas.drawBitmap(mBitmap, mSrc, mDst, mBitPaint);
 
-            drawCross(canvas, mPoint.x*(mDst.right - mDst.left)/mWidth + mDst.left, mPoint.y*(mDst.bottom - mDst.top)/mHeight + mDst.top, mCrossPaint);
+            drawCrossArray(canvas, mPointArray, mCrossPaint);
 
-            canvas.drawText("z: " + (this.mDistance/1000.0f) + "m", mDst.right - 150, mDst.bottom-80, mTextPaint);
+            drawTextArray(canvas, mTextPaint);
+        }
+    }
+
+    private void drawCrossArray(Canvas canvas, Point[] arr, Paint paint){
+        for (Point p : mPointArray){
+            drawCross(canvas, scaleX(p.x), scaleY(p.y), paint);
         }
     }
 
@@ -84,6 +112,13 @@ public class DepthView extends View {
         canvas.drawLine(x - 10, y, x + 10, y, paint);
         canvas.drawLine(x, y - 10, x, y + 10, paint);
     }
+
+    private void drawTextArray(Canvas canvas,Paint paint){
+        for (int i = 0; i < mPointArray.length; i++){
+            canvas.drawText("z: " + (mDistArray[i]/1000.0f) + "m", scaleX(mPointArray[i].x-20), scaleY(mPointArray[i].y+20), paint);
+        }
+    }
+
 
     public void setDepthSize(int width, int height){
         mWidth = width;
@@ -100,11 +135,32 @@ public class DepthView extends View {
         this.mDistance = distance & 0xFFFF;
     }
 
-    public Point getmPoint() {
-        return mPoint;
+    public void setDistanceArray(ByteBuffer src16){
+        for (int i = 0; i < mPointArray.length; i++){
+            int distance = src16.get(2*mWidth*mPointArray[i].y + 2*mPointArray[i].x) & 0xFF;
+            distance += (src16.get(2*mWidth*mPointArray[i].y + 2*mPointArray[i].x +1) & 0xFF) << 8;
+            mDistArray[i] = distance & 0xFFFF;
+        }
     }
 
-    public void setmPoint(Point mPoint) {
-        this.mPoint = mPoint;
+    private int scaleX(int x){
+        return x*(mDst.right - mDst.left)/mWidth+ mDst.left;
+    }
+
+    private int scaleY(int y){
+        return y*(mDst.bottom - mDst.top)/mHeight + mDst.top;
+    }
+    /**
+     * 统计帧数
+     * @param newTime
+     */
+    private void statisticsFPS(long newTime) {
+        fpsCount++;
+        long timeValue = newTime - oldTime;
+        if (timeValue >= 1000) {
+            Log.d("======Fps=======: ", ""+fpsCount);
+            fpsCount = 0;
+            oldTime = newTime;
+        }
     }
 }

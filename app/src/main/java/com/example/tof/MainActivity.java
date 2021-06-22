@@ -12,10 +12,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.tcl.camera.TCameraManager;
-import com.tcl.tosapi.camera.TvCameraApi;
+import com.tcl.tvcamera.TCameraManager;
+import com.tcl.tvcamera.TvCameraApi;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -43,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Spinner mSpinner;
     private ImageProcessor mImageProcessor;
+    private EditText editText_range_min;
+    private EditText editText_range_max;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -63,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
         mImageProcessor = ImageProcessor.getInstance(this);
 
+        editText_range_max = findViewById(R.id.range_max);
+        editText_range_min = findViewById(R.id.range_min);
+
         mSpinner = findViewById(R.id.Spinner);
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -78,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
     @Override
@@ -167,6 +172,20 @@ public class MainActivity extends AppCompatActivity {
 
     public void onCapture(View view) {
         mCamera2.setCaptureOneFrame(true);
+    }
+
+    public void onUpdateRange(View view) {
+        String text_range_max = editText_range_max.getText().toString();
+        String text_range_min = editText_range_min.getText().toString();
+        int range_max, range_min;
+        if (!text_range_max.isEmpty()){
+            range_max = Integer.parseInt(text_range_max);
+            mImageProcessor.setRange_max(range_max);
+        }
+        if (!text_range_min.isEmpty()){
+            range_min = Integer.parseInt(text_range_min);
+            mImageProcessor.setRange_min(range_min);
+        }
     }
 
     /**

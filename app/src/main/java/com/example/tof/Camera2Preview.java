@@ -47,9 +47,10 @@ public class Camera2Preview extends TextureView {
     private ImageProcessor mImageProc;
     private boolean isCaptureOneFrame = false;
     private ByteBuffer dst16 = ByteBuffer.allocate(614400);
-    private Point mPoint;
 
     private int photoIdx = 0;
+    private int fpsCount = 0;
+    private long oldTime = 0;
 
     public Camera2Preview(Context context) {
         this(context, null);
@@ -225,14 +226,15 @@ public class Camera2Preview extends TextureView {
         public void onImageAvailable(ImageReader reader) {
             Image img = reader.acquireNextImage();
             ByteBuffer src16 = img.getPlanes()[0].getBuffer();
-            Log.d(TAG, "onImageAvailable SIZE = " + src16.remaining());
+//            Log.d(TAG, "onImageAvailable SIZE = " + src16.remaining());
+//            statisticsFPS(System.currentTimeMillis());
 
             if (isCaptureOneFrame){
                 saveOneFrame(PATH + "depth_" +  photoIdx++ + ".png", src16);
                 isCaptureOneFrame = false;
             }
 
-            myDepthView.setDistance(src16);
+            myDepthView.setDistanceArray(src16);
 
             mImageProc.applyColorMap(src16, dst16);
             myDepthView.mBitmap.copyPixelsFromBuffer(dst16);
@@ -250,7 +252,6 @@ public class Camera2Preview extends TextureView {
     public void setCaptureOneFrame(boolean flag){
         this.isCaptureOneFrame = flag;
     }
-
 
     private void saveOneFrame(String filename, ByteBuffer src){
         FileOutputStream out = null;
@@ -282,6 +283,20 @@ public class Camera2Preview extends TextureView {
                 out.close();
             } catch (Exception ignored){
             }
+        }
+    }
+
+    /**
+     * 统计帧数
+     * @param newTime
+     */
+    private void statisticsFPS(long newTime) {
+        fpsCount++;
+        long timeValue = newTime - oldTime;
+        if (timeValue >= 1000) {
+            Log.d("======Fps=======: ", ""+fpsCount);
+            fpsCount = 0;
+            oldTime = newTime;
         }
     }
 }

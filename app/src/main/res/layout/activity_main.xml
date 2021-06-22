@@ -32,20 +32,19 @@
             android:layout_marginStart="80sp"
             android:textSize="20sp"
             android:id="@+id/MinText"
-            android:text="MIN:"
+            android:text="MIN(mm):"
             android:textColor="@color/gray"
             />
 
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/MinText"
+            android:layout_toEndOf="@+id/MinText"
             android:layout_centerVertical="true"
             android:id="@+id/range_min"
             android:hint="100"
             android:textColorHint="@color/gray"
             android:textColor="@color/white"
-            android:elegantTextHeight="true"
             android:inputType="number"
             />
         <TextView
@@ -53,9 +52,9 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:textSize="20sp"
-            android:layout_toRightOf="@+id/range_min"
+            android:layout_toEndOf="@+id/range_min"
             android:id="@+id/MaxText"
-            android:text="MAX: "
+            android:text="~ MAX(mm): "
             android:textColor="@color/gray"
             />
         <EditText
@@ -63,22 +62,33 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@+id/MaxText"
+            android:layout_toEndOf="@+id/MaxText"
             android:hint="4096"
             android:textColorHint="@color/gray"
             android:textColor="@color/white"
-            android:elegantTextHeight="true"
             android:inputType="number"
 
             />
+
+        <Button
+            android:id="@+id/updateRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/range_max"
+            android:layout_marginStart="40sp"
+            android:text="update range"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:onClick="onUpdateRange"/>
 
         <Spinner
             android:id="@+id/Spinner"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toEndOf="@+id/range_max"
-            android:layout_marginLeft="40dp"
+            android:layout_toEndOf="@+id/updateRange"
+            android:layout_marginLeft="30sp"
             android:background="@color/gray"
             android:dropDownWidth="150dp"
             android:entries="@array/menu_type"
