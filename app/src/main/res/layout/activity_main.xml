@@ -7,29 +7,16 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="50sp"
         android:background="@color/black"
         android:orientation="horizontal"
         >
-
-        <Button
-            android:id="@+id/captureDepth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20sp"
-            android:text="capture depth"
-            android:textSize="20sp"
-            android:textAllCaps="false"
-            android:backgroundTint="@color/cardview_dark_background"
-            android:onClick="onCapture"/>
-
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toEndOf="@+id/captureDepth"
-            android:layout_marginStart="80sp"
+            android:layout_marginStart="20sp"
             android:textSize="20sp"
             android:id="@+id/MinText"
             android:text="MIN(mm):"
@@ -76,23 +63,56 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/range_max"
             android:layout_marginStart="40sp"
-            android:text="update range"
+            android:text="更新深度"
             android:backgroundTint="@color/cardview_dark_background"
             android:textSize="20sp"
             android:textAllCaps="false"
             android:onClick="onUpdateRange"/>
 
-        <Spinner
-            android:id="@+id/Spinner"
-            android:layout_width="80dp"
+
+        <Button
+            android:id="@+id/Btn_colomap"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
             android:layout_toEndOf="@+id/updateRange"
-            android:layout_marginLeft="30sp"
-            android:background="@color/gray"
-            android:dropDownWidth="150dp"
-            android:entries="@array/menu_type"
-            android:spinnerMode="dropdown" />
+            android:layout_marginStart="40sp"
+            android:text="色彩映射"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:onClick="onSelectColormap"
+            android:focusedByDefault="true"
+            />
+
+        <Button
+            android:id="@+id/Btn_D2C"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/Btn_colomap"
+            android:layout_marginStart="40sp"
+            android:text="开启D2C"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:onClick="onD2C"
+            />
+
+
+        <Button
+            android:id="@+id/captureDepth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/Btn_D2C"
+            android:layout_marginStart="40sp"
+            android:text="截深度图"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:onClick="onCapture"
+            />
+
+
+
     </RelativeLayout>
 
     <LinearLayout
@@ -111,7 +131,16 @@
                 android:id="@+id/Camera2Preview"
                 android:layout_width="640sp"
                 android:layout_height="360sp"
-                android:layout_centerVertical="true" />
+                android:layout_marginTop="100sp"
+                />
+
+            <com.example.tof.DepthView
+                android:id="@+id/D2C"
+                android:layout_width="640sp"
+                android:layout_height="480sp"
+                android:layout_centerVertical="true"
+                android:alpha="0.2"
+                />
 
         </RelativeLayout>
 

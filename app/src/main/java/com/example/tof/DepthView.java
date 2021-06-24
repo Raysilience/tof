@@ -39,10 +39,9 @@ public class DepthView extends View {
     private int x = 320;
     private int y = 200;
     private int offset = 120;
-
-
     private int fpsCount;
     private long oldTime;
+    private boolean isD2Copen = false;
 
     public DepthView(Context context) {
         super(context);
@@ -96,9 +95,10 @@ public class DepthView extends View {
 
             canvas.drawBitmap(mBitmap, mSrc, mDst, mBitPaint);
 
-            drawCrossArray(canvas, mPointArray, mCrossPaint);
-
-            drawTextArray(canvas, mTextPaint);
+            if (!isD2Copen){
+                drawCrossArray(canvas, mPointArray, mCrossPaint);
+                drawTextArray(canvas, mTextPaint);
+            }
         }
     }
 
@@ -126,7 +126,7 @@ public class DepthView extends View {
         mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
 
         mSrc = new Rect(0, 0, mWidth, mHeight);
-        mDst = new Rect(0, 50, 960, 770);
+        mDst = new Rect(-10, 0, 960, 720);
     }
 
     public void setDistance(ByteBuffer src16){
@@ -150,6 +150,11 @@ public class DepthView extends View {
     private int scaleY(int y){
         return y*(mDst.bottom - mDst.top)/mHeight + mDst.top;
     }
+
+    public void setD2Copen(boolean d2Copen) {
+        isD2Copen = d2Copen;
+    }
+
     /**
      * 统计帧数
      * @param newTime

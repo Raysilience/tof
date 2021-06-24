@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 
 public class ImageProcessor {
     enum COLORMAP{
-        JET, RAINBOW, SMOOTH_COOL_WARM, VIRIDIS, PLASMA
+        JET, PLASMA, VIRIDIS, SMOOTH_COOL_WARM, RAINBOW
     }
     private static final String TAG = ImageProcessor.class.getName();
     private int[] LUT = new int[256];

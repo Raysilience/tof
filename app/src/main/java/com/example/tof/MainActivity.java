@@ -7,13 +7,23 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.tcl.tvcamera.TCameraManager;
 import com.tcl.tvcamera.TvCameraApi;
@@ -34,7 +44,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private DepthView myDepthView;
+    private DepthView mD2CView;
     private Camera2Preview mCamera2;
+    private SurfaceView mSurfaceView;
+    private SurfaceHolder mSurfaceHolder;
 
     private final int PERMISSION_REQUEST_CODE = 1;
     private List<String> mPermissionList = new ArrayList<>();
@@ -42,10 +55,12 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.CAMERA,
     };
 
-    private Spinner mSpinner;
     private ImageProcessor mImageProcessor;
     private EditText editText_range_min;
     private EditText editText_range_max;
+    private PopupWindow mPopupWindow;
+
+    private boolean isD2Copen = false;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -53,37 +68,38 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkAndRequestPermission();
-
-        TvCameraApi api = TvCameraApi.getInstance();
-        api.init(0, this);
-        api.setRequestFormat(0, TCameraManager.REQUEST_FORMAT_RGB);
-        api.setRequestFormat(0, TCameraManager.REQUEST_FORMAT_DEPTH);
+        initStream();
+        mImageProcessor = ImageProcessor.getInstance(this);
 
         mCamera2 = findViewById(R.id.Camera2Preview);
         myDepthView = findViewById(R.id.Depth);
         myDepthView.setDepthSize(640, 480);
         mCamera2.setDepthView(myDepthView);
 
-        mImageProcessor = ImageProcessor.getInstance(this);
+        mD2CView = findViewById(R.id.D2C);
+        mD2CView.setDepthSize(640, 480);
+        mCamera2.setD2CView(mD2CView);
+        mD2CView.setVisibility(View.INVISIBLE);
 
         editText_range_max = findViewById(R.id.range_max);
         editText_range_min = findViewById(R.id.range_min);
 
-        mSpinner = findViewById(R.id.Spinner);
-        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dropdown_listview, null, false);
+        ListView lv = view.findViewById(R.id.colormap_lv);
+        ImageProcessor.COLORMAP[] data = ImageProcessor.COLORMAP.values();
+        ArrayAdapter<ImageProcessor.COLORMAP> adapter = new ArrayAdapter<>(this, R.layout.dropdown_item, data);
+        lv.setAdapter(adapter);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String item = (String)parent.getItemAtPosition(position);
-                ImageProcessor.COLORMAP type = ImageProcessor.COLORMAP.valueOf(item);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ImageProcessor.COLORMAP type = (ImageProcessor.COLORMAP) parent.getItemAtPosition(position);
                 mImageProcessor.setLUT(type);
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Log.e("RUi", "onNothingSelected");
-
-            }
         });
+        this.mPopupWindow = new PopupWindow(view, 300, 300);
+        mPopupWindow.setOutsideTouchable(true);
+        mPopupWindow.setFocusable(true);
     }
 
     @Override
@@ -97,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "OpenCV library found inside package.");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
-
     }
 
     @Override
@@ -186,6 +201,31 @@ public class MainActivity extends AppCompatActivity {
             range_min = Integer.parseInt(text_range_min);
             mImageProcessor.setRange_min(range_min);
         }
+    }
+
+    public void onSelectColormap(View view) {
+        mPopupWindow.showAsDropDown(view);
+    }
+
+    public void onD2C(View view) {
+        Button btn = findViewById(R.id.Btn_D2C);
+        if (!isD2Copen){
+            mD2CView.setVisibility(View.VISIBLE);
+            btn.setText("关闭D2C");
+            isD2Copen = true;
+        } else {
+            mD2CView.setVisibility(View.INVISIBLE);
+            btn.setText("开启D2C");
+            isD2Copen = false;
+        }
+        mD2CView.setD2Copen(isD2Copen);
+    }
+
+    private void initStream(){
+        TvCameraApi api = TvCameraApi.getInstance();
+        api.init(0, this);
+        api.setRequestFormat(0, TCameraManager.REQUEST_FORMAT_RGB);
+        api.setRequestFormat(0, TCameraManager.REQUEST_FORMAT_DEPTH);
     }
 
     /**

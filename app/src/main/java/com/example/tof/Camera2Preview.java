@@ -18,6 +18,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -44,6 +45,7 @@ public class Camera2Preview extends TextureView {
     private ImageReader mImageReader;
 
     private DepthView myDepthView;
+    private DepthView mD2CView;
     private ImageProcessor mImageProc;
     private boolean isCaptureOneFrame = false;
     private ByteBuffer dst16 = ByteBuffer.allocate(614400);
@@ -240,6 +242,10 @@ public class Camera2Preview extends TextureView {
             myDepthView.mBitmap.copyPixelsFromBuffer(dst16);
             myDepthView.postInvalidate();
 
+            dst16.rewind();
+            mD2CView.mBitmap.copyPixelsFromBuffer(dst16);
+            mD2CView.postInvalidate();
+
             img.close();
 
         }
@@ -249,11 +255,17 @@ public class Camera2Preview extends TextureView {
         myDepthView = view;
     }
 
+    public void setD2CView(DepthView view){
+        mD2CView = view;
+    }
+
     public void setCaptureOneFrame(boolean flag){
         this.isCaptureOneFrame = flag;
     }
 
     private void saveOneFrame(String filename, ByteBuffer src){
+        Toast.makeText(mContext, "保存raw格式至：" + Camera2Preview.PATH, Toast.LENGTH_LONG).show();
+
         FileOutputStream out = null;
         try {
             File file = new File(filename);
