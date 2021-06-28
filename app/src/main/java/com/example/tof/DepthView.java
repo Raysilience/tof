@@ -2,6 +2,7 @@ package com.example.tof;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,6 +10,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -21,16 +23,20 @@ import java.nio.ByteBuffer;
  */
 public class DepthView extends View {
     private static final String TAG = DepthView.class.getName();
-    private final String mColor = "#42ed45";
     private Paint mBitPaint;
     private Paint mCrossPaint;
     private Paint mTextPaint;
 
     public Bitmap mBitmap;
+    private Bitmap mLegendGray;
+    private Bitmap mLegendColor;
+    private ByteBuffer src8;
+    private ByteBuffer dst16;
+
     private int mWidth;
     private int mHeight;
-    private Rect mSrc;
     private Rect mDst;
+    private Rect mLegendDst;
 
     private int mDistance;
     private int[] mDistArray = new int[9];
@@ -38,10 +44,14 @@ public class DepthView extends View {
     private Point[] mPointArray;
     private int x = 320;
     private int y = 200;
-    private int offset = 120;
+    private int interval = 120;
+
     private int fpsCount;
     private long oldTime;
+
     private boolean isD2Copen = false;
+    private ImageProcessor mImageProcessor;
+
 
     public DepthView(Context context) {
         super(context);
@@ -77,14 +87,21 @@ public class DepthView extends View {
 
         mPoint = new Point(x, y);
         mPointArray = new Point[]{new Point(x, y),
-                new Point(x - offset, y),
-                new Point(x + offset, y),
-                new Point(x, y - offset),
-                new Point(x, y + offset),
-                new Point(x - offset, y - offset),
-                new Point(x + offset, y + offset),
-                new Point(x + offset, y - offset),
-                new Point(x - offset, y + offset)};
+                new Point(x - interval, y),
+                new Point(x + interval, y),
+                new Point(x, y - interval),
+                new Point(x, y + interval),
+                new Point(x - interval, y - interval),
+                new Point(x + interval, y + interval),
+                new Point(x + interval, y - interval),
+                new Point(x - interval, y + interval)};
+
+        mImageProcessor = ImageProcessor.getInstance(context);
+        mLegendGray = getBitmap(context, R.mipmap.gray);
+        mLegendColor = Bitmap.createBitmap(mLegendGray.getWidth(), mLegendGray.getHeight(), Bitmap.Config.RGB_565);
+        dst16 = ByteBuffer.allocate(mLegendColor.getByteCount());
+        src8 = ByteBuffer.allocate(mLegendGray.getByteCount());
+
     }
 
     @Override
@@ -93,11 +110,12 @@ public class DepthView extends View {
         if (mBitmap != null){
             statisticsFPS(System.currentTimeMillis());
 
-            canvas.drawBitmap(mBitmap, mSrc, mDst, mBitPaint);
+            canvas.drawBitmap(mBitmap, null, mDst, mBitPaint);
 
             if (!isD2Copen){
                 drawCrossArray(canvas, mPointArray, mCrossPaint);
                 drawTextArray(canvas, mTextPaint);
+                drawLegend(canvas, mBitPaint, mTextPaint);
             }
         }
     }
@@ -119,14 +137,21 @@ public class DepthView extends View {
         }
     }
 
+    private void drawLegend(Canvas canvas, Paint bitmapPaint, Paint textPaint){
+        canvas.drawBitmap(mLegendColor, null, mLegendDst, bitmapPaint);
+
+        canvas.drawText("MIN: " + mImageProcessor.getRange_min()/1000.0f + "m", mLegendDst.left - 50, mLegendDst.bottom-50, textPaint);
+        canvas.drawText("MAX: " + mImageProcessor.getRange_max()/1000.0f + "m", mLegendDst.right - 50, mLegendDst.bottom-50, textPaint);
+
+    }
 
     public void setDepthSize(int width, int height){
         mWidth = width;
         mHeight = height;
         mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
 
-        mSrc = new Rect(0, 0, mWidth, mHeight);
-        mDst = new Rect(-10, 0, 960, 720);
+        mDst = new Rect(-10, 0, 960, 730);
+        mLegendDst = new Rect(140, 700, 140+650, 30+700);
     }
 
     public void setDistance(ByteBuffer src16){
@@ -167,5 +192,21 @@ public class DepthView extends View {
             fpsCount = 0;
             oldTime = newTime;
         }
+    }
+
+    private Bitmap getBitmap(Context context, int resId) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        TypedValue value = new TypedValue();
+        context.getResources().openRawResource(resId, value);
+        options.inTargetDensity = value.density;
+        options.inScaled = false;//不缩放
+        options.inPreferredConfig = Bitmap.Config.ALPHA_8;
+        return BitmapFactory.decodeResource(context.getResources(), resId, options);
+    }
+
+    public void setLegend(){
+        mLegendGray.copyPixelsToBuffer(src8);
+        mImageProcessor.convertLegend(src8, dst16);
+        mLegendColor.copyPixelsFromBuffer(dst16);
     }
 }

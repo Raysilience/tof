@@ -23,7 +23,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Table status
     private boolean isJETInit = false;
-    private boolean isRainbowInit = false;
     private boolean isSMOOTH_COOL_WARMInit = false;
     private boolean isViridisInit = false;
     private boolean isPlasmaInit = false;
@@ -48,46 +47,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_RAINBOW_TABLE = "CREATE TABLE " + ImageProcessor.COLORMAP.RAINBOW.toString() +
-                " (" +
-                KEY_ID + " INTEGER PRIMARY KEY," + // Define a primary key
-                KEY_RED + " INTEGER," +
-                KEY_GREEN + " INTEGER," +
-                KEY_BLUE + " INTEGER" +
-                ");";
-        String CREATE_JET_TABLE = "CREATE TABLE " + ImageProcessor.COLORMAP.JET.toString() +
-                " (" +
-                KEY_ID + " INTEGER PRIMARY KEY," + // Define a primary key
-                KEY_RED + " INTEGER," +
-                KEY_GREEN + " INTEGER," +
-                KEY_BLUE + " INTEGER" +
-                ");";
-        String CREATE_SMOOTH_COOL_WARM_TABLE = "CREATE TABLE " + ImageProcessor.COLORMAP.SMOOTH_COOL_WARM.toString() +
-                " (" +
-                KEY_ID + " INTEGER PRIMARY KEY," + // Define a primary key
-                KEY_RED + " INTEGER," +
-                KEY_GREEN + " INTEGER," +
-                KEY_BLUE + " INTEGER" +
-                ");";
-        String CREATE_VIRIDIS_TABLE = "CREATE TABLE " + ImageProcessor.COLORMAP.VIRIDIS.toString() +
-                " (" +
-                KEY_ID + " INTEGER PRIMARY KEY," + // Define a primary key
-                KEY_RED + " INTEGER," +
-                KEY_GREEN + " INTEGER," +
-                KEY_BLUE + " INTEGER" +
-                ");";
-        String CREATE_PLASMA_TABLE = "CREATE TABLE " + ImageProcessor.COLORMAP.PLASMA.toString() +
-                " (" +
-                KEY_ID + " INTEGER PRIMARY KEY," + // Define a primary key
-                KEY_RED + " INTEGER," +
-                KEY_GREEN + " INTEGER," +
-                KEY_BLUE + " INTEGER" +
-                ");";
-        db.execSQL(CREATE_JET_TABLE);
-        db.execSQL(CREATE_SMOOTH_COOL_WARM_TABLE);
-        db.execSQL(CREATE_VIRIDIS_TABLE);
-        db.execSQL(CREATE_PLASMA_TABLE);
-        db.execSQL(CREATE_RAINBOW_TABLE);
+        for (ImageProcessor.COLORMAP colormap: ImageProcessor.COLORMAP.values()){
+            String createTable =  "CREATE TABLE " + colormap.toString() +
+                    " (" +
+                    KEY_ID + " INTEGER PRIMARY KEY," + // Define a primary key
+                    KEY_RED + " INTEGER," +
+                    KEY_GREEN + " INTEGER," +
+                    KEY_BLUE + " INTEGER" +
+                    ");";
+            db.execSQL(createTable);
+        }
+
     }
 
     @Override
@@ -123,24 +93,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 }
                 isJETInit = true;
                 break;
-            case RAINBOW:
-                if (!isRainbowInit && !checkTableStatus(db, ImageProcessor.COLORMAP.RAINBOW)){
-                    updateFromCSV("rainbow.csv", ImageProcessor.COLORMAP.RAINBOW, db);
-                }
-                isRainbowInit = true;
-                break;
+
             case SMOOTH_COOL_WARM:
                 if (!isSMOOTH_COOL_WARMInit && !checkTableStatus(db, ImageProcessor.COLORMAP.SMOOTH_COOL_WARM)){
                     updateFromCSV("smooth-cool-warm.csv", ImageProcessor.COLORMAP.SMOOTH_COOL_WARM, db);
                 }
                 isSMOOTH_COOL_WARMInit = true;
                 break;
+
             case VIRIDIS:
                 if (!isViridisInit && !checkTableStatus(db, ImageProcessor.COLORMAP.VIRIDIS)){
                     updateFromCSV("viridis.csv", ImageProcessor.COLORMAP.VIRIDIS, db);
                 }
                 isViridisInit = true;
                 break;
+
             case PLASMA:
                 if (!isPlasmaInit && !checkTableStatus(db, ImageProcessor.COLORMAP.PLASMA)){
                     updateFromCSV("plasma.csv", ImageProcessor.COLORMAP.PLASMA, db);

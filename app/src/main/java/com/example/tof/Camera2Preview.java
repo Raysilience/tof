@@ -46,7 +46,7 @@ public class Camera2Preview extends TextureView {
 
     private DepthView myDepthView;
     private DepthView mD2CView;
-    private ImageProcessor mImageProc;
+    private ImageProcessor mImageProcessor;
     private boolean isCaptureOneFrame = false;
     private ByteBuffer dst16 = ByteBuffer.allocate(614400);
 
@@ -66,8 +66,7 @@ public class Camera2Preview extends TextureView {
         super(context, attrs, defStyle);
         mContext = context;
         Log.e(TAG, String.valueOf(context != null));
-        mImageProc = ImageProcessor.getInstance(context);
-        mImageProc.setLUT(ImageProcessor.COLORMAP.PLASMA);
+        mImageProcessor = ImageProcessor.getInstance(context);
     }
 
     private final SurfaceTextureListener mSurfaceTextureListener = new SurfaceTextureListener() {
@@ -115,6 +114,9 @@ public class Camera2Preview extends TextureView {
         CameraManager manager = (CameraManager)mContext.getSystemService(Context.CAMERA_SERVICE);
         try {
             String[] list = manager.getCameraIdList();
+            for (String id: list){
+                Log.e("+++++++++++++:", id);
+            }
             if (list != null) {
                 if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "openCamera: no Camera Permission");
@@ -238,7 +240,7 @@ public class Camera2Preview extends TextureView {
 
             myDepthView.setDistanceArray(src16);
 
-            mImageProc.applyColorMap(src16, dst16);
+            mImageProcessor.applyColorMap(src16, dst16);
             myDepthView.mBitmap.copyPixelsFromBuffer(dst16);
             myDepthView.postInvalidate();
 

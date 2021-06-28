@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 
 public class ImageProcessor {
     enum COLORMAP{
-        JET, PLASMA, VIRIDIS, SMOOTH_COOL_WARM, RAINBOW
+        JET, PLASMA, VIRIDIS, SMOOTH_COOL_WARM
     }
     private static final String TAG = ImageProcessor.class.getName();
     private int[] LUT = new int[256];
@@ -20,7 +20,7 @@ public class ImageProcessor {
     private DatabaseHelper dbHelper;
     private static ImageProcessor instance;
     private int range_min = 100;
-    private int range_max = 4096;
+    private int range_max = 5000;
 
     public static synchronized ImageProcessor getInstance(Context context){
         if (instance == null){
@@ -31,6 +31,10 @@ public class ImageProcessor {
 
     private ImageProcessor(Context context){
         dbHelper = DatabaseHelper.getInstance(context);
+    }
+
+    public void exit(){
+        instance = null;
     }
 
     public void setLUT(COLORMAP type) {
@@ -137,6 +141,25 @@ public class ImageProcessor {
             }
         }
         src16.rewind();
+        dst16.rewind();
+    }
+
+    public void convertLegend(ByteBuffer src8, ByteBuffer dst16){
+        src8.rewind();
+        dst16.rewind();
+
+        while(true){
+            try{
+                int val = (src8.get() & 0xFF);
+                int rgb = LUT[val];
+                dst16.put((byte) (rgb & 0xFF));
+                dst16.put((byte) ((rgb & 0xFFFF) >> 8));
+
+            } catch (BufferUnderflowException | IllegalStateException ignored){
+                break;
+            }
+        }
+        src8.rewind();
         dst16.rewind();
     }
 

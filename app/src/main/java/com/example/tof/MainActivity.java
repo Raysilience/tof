@@ -7,7 +7,6 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,15 +14,12 @@ import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.PopupWindow;
-import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.tcl.tvcamera.TCameraManager;
 import com.tcl.tvcamera.TvCameraApi;
@@ -31,6 +27,7 @@ import com.tcl.tvcamera.TvCameraApi;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,11 +40,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final String TAG = "MainActivity";
-    private DepthView myDepthView;
+    private DepthView mDepthView;
     private DepthView mD2CView;
     private Camera2Preview mCamera2;
-    private SurfaceView mSurfaceView;
-    private SurfaceHolder mSurfaceHolder;
 
     private final int PERMISSION_REQUEST_CODE = 1;
     private List<String> mPermissionList = new ArrayList<>();
@@ -69,35 +64,43 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         checkAndRequestPermission();
         initStream();
+
         mImageProcessor = ImageProcessor.getInstance(this);
+        mImageProcessor.setLUT(ImageProcessor.COLORMAP.PLASMA);
 
         mCamera2 = findViewById(R.id.Camera2Preview);
-        myDepthView = findViewById(R.id.Depth);
-        myDepthView.setDepthSize(640, 480);
-        mCamera2.setDepthView(myDepthView);
+        mDepthView = findViewById(R.id.Depth);
+        mDepthView.setDepthSize(640, 480);
+        mDepthView.setLegend();
+        mCamera2.setDepthView(mDepthView);
 
         mD2CView = findViewById(R.id.D2C);
         mD2CView.setDepthSize(640, 480);
         mCamera2.setD2CView(mD2CView);
         mD2CView.setVisibility(View.INVISIBLE);
 
+//        mCamera2.setScaleX(-1f);
+//        mDepthView.setScaleX(-1f);
+//        mD2CView.setScaleX(-1f);
         editText_range_max = findViewById(R.id.range_max);
         editText_range_min = findViewById(R.id.range_min);
 
         LayoutInflater inflater = LayoutInflater.from(this);
-        View view = inflater.inflate(R.layout.dropdown_listview, null, false);
+        View view = inflater.inflate(R.layout.listview_colormap, null, false);
         ListView lv = view.findViewById(R.id.colormap_lv);
+        lv.setSelector(R.drawable.selector_colormap);
         ImageProcessor.COLORMAP[] data = ImageProcessor.COLORMAP.values();
-        ArrayAdapter<ImageProcessor.COLORMAP> adapter = new ArrayAdapter<>(this, R.layout.dropdown_item, data);
+        ArrayAdapter<ImageProcessor.COLORMAP> adapter = new ArrayAdapter<>(this, R.layout.textview_colormap_item, data);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ImageProcessor.COLORMAP type = (ImageProcessor.COLORMAP) parent.getItemAtPosition(position);
                 mImageProcessor.setLUT(type);
+                mDepthView.setLegend();
             }
         });
-        this.mPopupWindow = new PopupWindow(view, 300, 300);
+        this.mPopupWindow = new PopupWindow(view, 250, 300);
         mPopupWindow.setOutsideTouchable(true);
         mPopupWindow.setFocusable(true);
     }
@@ -119,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mCamera2.onPause();
+        closeStream();
+        mImageProcessor.exit();
     }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -226,6 +231,11 @@ public class MainActivity extends AppCompatActivity {
         api.init(0, this);
         api.setRequestFormat(0, TCameraManager.REQUEST_FORMAT_RGB);
         api.setRequestFormat(0, TCameraManager.REQUEST_FORMAT_DEPTH);
+    }
+
+    private void closeStream(){
+        TvCameraApi api = TvCameraApi.getInstance();
+        api.setRequestFormat(0, 0);
     }
 
     /**

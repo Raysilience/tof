@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_toEndOf="@+id/MaxText"
-            android:hint="4096"
+            android:hint="5000"
             android:textColorHint="@color/gray"
             android:textColor="@color/white"
             android:inputType="number"
@@ -127,6 +127,17 @@
             android:layout_weight="1"
             android:background="@color/black">
 
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RGB"
+                android:textSize="20sp"
+                android:textStyle="italic"
+                android:textColor="@color/gray"
+                android:layout_marginTop="30sp"
+                />
+
             <com.example.tof.Camera2Preview
                 android:id="@+id/Camera2Preview"
                 android:layout_width="640sp"
@@ -150,8 +161,19 @@
             android:layout_weight="1"
             android:background="@color/black"
             android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Depth"
+                android:textSize="20sp"
+                android:textStyle="italic"
+                android:textColor="@color/gray"
+                android:layout_marginTop="30sp"
+                />
+
+
             <com.example.tof.DepthView
-                android:background="@color/black"
                 android:id="@+id/Depth"
                 android:layout_width="640sp"
                 android:layout_height="480sp"
