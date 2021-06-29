@@ -140,8 +140,8 @@ public class DepthView extends View {
     private void drawLegend(Canvas canvas, Paint bitmapPaint, Paint textPaint){
         canvas.drawBitmap(mLegendColor, null, mLegendDst, bitmapPaint);
 
-        canvas.drawText("MIN: " + mImageProcessor.getRange_min()/1000.0f + "m", mLegendDst.left - 50, mLegendDst.bottom-50, textPaint);
-        canvas.drawText("MAX: " + mImageProcessor.getRange_max()/1000.0f + "m", mLegendDst.right - 50, mLegendDst.bottom-50, textPaint);
+        canvas.drawText("MIN: " + mImageProcessor.getRange_min()/1000.0f + "m", mLegendDst.left, mLegendDst.bottom-50, textPaint);
+        canvas.drawText("MAX: " + mImageProcessor.getRange_max()/1000.0f + "m", mLegendDst.right, mLegendDst.bottom-50, textPaint);
 
     }
 

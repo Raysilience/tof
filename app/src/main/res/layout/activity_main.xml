@@ -136,6 +136,7 @@
                 android:textStyle="italic"
                 android:textColor="@color/gray"
                 android:layout_marginTop="30sp"
+                android:layout_marginStart="20sp"
                 />
 
             <com.example.tof.Camera2Preview
@@ -170,6 +171,7 @@
                 android:textStyle="italic"
                 android:textColor="@color/gray"
                 android:layout_marginTop="30sp"
+                android:layout_marginStart="20sp"
                 />
 
 
